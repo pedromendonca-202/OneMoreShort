@@ -1,5 +1,6 @@
 """Small persistent workflow for the manual visual-generation handoff."""
 from __future__ import annotations
+import random
 from datetime import datetime,UTC
 from sqlalchemy.orm import Session
 from app.core.config import Settings
@@ -11,7 +12,7 @@ from app.core.storage import Storage
 from app.llm.router import build_llm
 from app.llm.mock import MockLLM
 from app.manual_video.workflow import export_prompts,collect_manual_segments,inbox_for
-from app.research.schemas import TopicScore,KnowledgeContext
+from app.research.schemas import TopicScore,KnowledgeContext,StrategyWeights
 from app.research.deep_research import deep_research
 from app.scripting.generator import generate_script
 from app.storyboard.generator import generate_storyboard
@@ -30,7 +31,7 @@ class Orchestrator:
    if not p:raise ValueError(f"unknown production {pid}")
    llm=build_llm(self.settings)
    if not p.topics:
-    topic=TopicScore(topic="A surprising science fact",category="science",trend_score=70,viral_potential=70,us_relevance=80,competition=30,shorts_fit=90,originality=80,risk=10,final_score=78,reasons=["mock/default discovery"])
+    topic=self._discover_topic(llm)
     s.add(Topic(production_id=pid,topic=topic.topic,category=topic.category,selected=True,final_score=topic.final_score,reasons=topic.reasons));p.state=State.SELECTED;s.flush()
    selected=next((topic for topic in s.query(Topic).filter_by(production_id=pid) if topic.selected),None)
    if selected is None:raise RuntimeError("selected topic was not persisted")
@@ -44,6 +45,25 @@ class Orchestrator:
    if not p.bible:s.add(BibleRow(production_id=pid,data=bible.model_dump()))
    package=export_prompts(pid,storyboard,bible,self.storage,self.settings);p.state=State.GENERATING;s.flush()
    return package
+ def _discover_topic(self,llm):
+  if self.settings.mode!="live":
+   return TopicScore(topic="A surprising science fact",category="science",trend_score=70,viral_potential=70,us_relevance=80,competition=30,shorts_fit=90,originality=80,risk=10,final_score=78,reasons=["deterministic mock discovery"])
+  from app.trends.reddit_source import RedditSource
+  from app.trends.news_rss_source import GoogleNewsRSSSource
+  from app.trends.hackernews_source import HackerNewsSource
+  from app.trends.wikipedia_source import WikipediaTopViewedSource
+  from app.trends.gtrends_rss_source import GoogleTrendsRSSSource
+  from app.trends.youtube_source import YouTubeTrendSource
+  from app.trends.aggregator import aggregate
+  from app.research.scorer import score_topics
+  from app.research.selector import select_topic
+  sources=[RedditSource(self.settings.trends.reddit_subreddits,timeout_s=self.settings.trends.http_timeout_s),GoogleNewsRSSSource(region=self.settings.trends.region,language=self.settings.trends.language,timeout_s=self.settings.trends.http_timeout_s),HackerNewsSource(timeout_s=self.settings.trends.http_timeout_s),WikipediaTopViewedSource(timeout_s=self.settings.trends.http_timeout_s),GoogleTrendsRSSSource(region=self.settings.trends.region,timeout_s=self.settings.trends.http_timeout_s)]
+  if self.settings.google_api_key:sources.append(YouTubeTrendSource(self.settings.google_api_key.get_secret_value(),region=self.settings.trends.region,categories=self.settings.trends.youtube_categories,timeout_s=self.settings.trends.http_timeout_s))
+  signals=[signal for source in sources for signal in source.fetch(self.settings.trends.per_source_limit)]
+  clusters=aggregate(signals,llm=llm,max_candidates=self.settings.trends.max_candidates)
+  if not clusters:raise RuntimeError("no usable trend signals; retry later or check network/source configuration")
+  scores=score_topics(llm,clusters,knowledge=KnowledgeContext())
+  return select_topic(scores, StrategyWeights(), rng=random.Random())[0]
  def collect(self,pid:str):
   with session_scope(self.engine) as s:
    p=s.get(Production,pid)
