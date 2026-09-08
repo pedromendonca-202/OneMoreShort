@@ -9,7 +9,21 @@ the Google AI subscription credits already paid for. Everything else is automati
 Gemini text/vision/TTS free tier, YouTube Data + Analytics APIs, edge-tts, RSS trend feeds, ffmpeg.
 No Veo API call is made unless `generation.mode: veo` is set deliberately.
 
-## Quick start
+## Web panel (recommended)
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\create_desktop_shortcut.ps1   # once: desktop icon
+powershell -ExecutionPolicy Bypass -File scripts\panel.ps1                     # or: start + open the browser
+```
+
+The panel runs at **http://127.0.0.1:8787** (localhost only, no internet needed, no npm). Screens: Hoje
+(today's production and the next action), Estúdio (script, prompts, clip upload, review, publish),
+Conversa (assistant with tools), Biblioteca, Desempenho (retention curve mapped to the script),
+Inteligência (what the channel learned) and Ajustes (keys, YouTube OAuth, publication, brand, rules,
+folders). It is a thin layer over the same `Orchestrator` the CLI uses; the scheduler keeps running the
+daily cycle with the browser closed. See `OPERATIONS.md` ("Web panel") and `API.md` ("HTTP API").
+
+## Quick start (CLI)
 
 ```powershell
 # 1. one-time
@@ -60,10 +74,12 @@ Result: `storage/renders/<ID>/OneMoreShort_Final.mp4` (1080x1920, H.264/AAC 48 k
 
 ```
 app/          core, llm, trends, research, scripting, storyboard, continuity, veo, manual_video,
-              audio, captions, editing, quality, metadata, youtube, analytics, intelligence, pipeline, cli
+              audio, captions, editing, quality, metadata, youtube, analytics, intelligence, pipeline, cli,
+              web (FastAPI panel: routes, SSE, upload, chat tools, static front end)
 config/       default.yaml (+ optional local.yaml, git-ignored)
 storage/      per-production artefacts: prompts, manual_input, segments, frames, audio, captions, renders, reports
 database/     oms.db (SQLite)   logs/   secrets/ (git-ignored)   scripts/   tests/
 ```
 
-Run the tests with `.\.venv\Scripts\python.exe -m pytest` (offline, about two minutes; ffmpeg required).
+Run the tests with `.\.venv\Scripts\python.exe -m pytest` (offline, about three minutes; ffmpeg required).
+The panel tests live in `tests/web/`; screen captures for the visual comparison are in `docs/captures/`.

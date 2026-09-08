@@ -27,6 +27,32 @@
 `learn`, `report ID`, `daily`, `metrics`, `costs [--days N]`, `youtube-auth`.
 Exit codes: 0 ok, 1 error, 2 WAITING_FOR_HUMAN_ACTION.
 
+## HTTP API (web panel, `app/web`)
+
+Served by `python -m app.web` on `127.0.0.1:8787`. Every mutating request needs the `X-OMS-CSRF` header with
+the token from `GET /api/session`; responses carry `X-Frame-Options: DENY`, `nosniff`, `no-referrer`, a strict
+CSP and no CORS. Errors are JSON `{error, message}`; a `HumanActionRequired` becomes HTTP 409 with the report.
+
+| Method | Route | Engine call |
+|---|---|---|
+| GET | `/api/session`, `/api/health`, `/api/metrics`, `/api/costs?days=` | session token, `doctor`, `metrics()`, `costs()` |
+| GET | `/api/events` | Server-Sent Events: `state`, `job`, `clip`, `snapshot`, `settings` |
+| GET | `/api/today` | today's production, banner state, steps, timeline, last published, channel summary |
+| GET/POST | `/api/productions` | library (`?q&state&category&sort`) / `new_production(force)` + `prepare` job |
+| GET/DELETE | `/api/productions/{id}` | detail (step, prompts, clips, quality, metadata) / delete |
+| POST | `/api/productions/{id}/prepare · collect · finish · resume` | background jobs over `prepare`, `collect`+`finish`, `finish`, `resume` |
+| POST | `/api/productions/{id}/publish` `{confirm:true}` | explicit upload, only from READY |
+| POST | `/api/productions/{id}/reset?keep_topic=` · `/duplicate` | new script (same topic) or new topic; new production with the same topic |
+| GET | `/api/productions/{id}/prompts · script.txt · video · report` | prompts with blocks, TXT download, final MP4, performance report |
+| PUT | `/api/productions/{id}/metadata` | title, description, hashtags, visibility, hour |
+| POST/DELETE | `/api/productions/{id}/clips` (multipart `scene`, `file`) · `/clips/{scene}` | validated upload to `storage/manual_input/<id>/segment_0N.mp4` (server-side name, 300 MB/file, ffprobe) |
+| GET | `/api/analytics/{id}` · `/api/analytics/latest` | KPIs, retention curve with drops mapped to the script, report verdict, channel comparison |
+| POST | `/api/analytics/collect` · `/api/learn` | `collect_analytics()` · `learn()` (rate limited) |
+| GET | `/api/intelligence` | highlights, patterns, themes, structures, scatter, recommended tests |
+| GET/PUT | `/api/settings` · POST `/restore` · `/test-connection` · `/youtube/connect` · `/youtube/disconnect` · `/open-folder` | masked settings; secrets written to `.env` only |
+| POST/GET | `/api/chat` · `/api/chat/history` | assistant (Gemini function calling, nine closed tools; publish/delete only return a confirmation request) |
+| GET | `/api/thumbs/{id}?clip=N` | JPEG thumbnail extracted with ffmpeg into `storage/thumbs/` |
+
 ## External APIs
 
 | API | Used for | Auth | Cost |

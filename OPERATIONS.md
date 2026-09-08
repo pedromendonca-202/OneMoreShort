@@ -17,6 +17,24 @@ powershell -ExecutionPolicy Bypass -File scripts\unregister_daily_task.ps1   # t
 Logs: `logs/oms.jsonl` (structured events with production id, stage, action, duration, status, error, retry
 count, API and cost) and `logs/daily_*.log` per scheduled run.
 
+## Web panel
+
+`scripts\panel.ps1` starts `python -m app.web` (bound to **127.0.0.1:8787 only**; never exposed to the
+network) and opens the browser; `scripts\create_desktop_shortcut.ps1` creates the desktop icon. Logs go to
+`logs/panel.out.log` and `logs/panel.err.log`. The panel and the CLI share the same database, so both can be
+used interchangeably; the scheduled `daily` task keeps running with the panel closed.
+
+Per video in the panel: **Hoje** shows the single next action → **Estúdio** step 2 copies the five prompts →
+generate the clips in Flow → drag the five files onto step 3 (validated with ffprobe on arrival; a clip
+outside 7-9 s is refused, one slightly off shows a warning) → "Continuar para revisão" runs validation,
+narration, captions, render and the quality gate → step 4 shows the preview and the gate → step 5 edits
+title/description/hashtags and publishes with an explicit confirmation. **Conversa** does the same through
+the assistant (publishing and deleting always open a confirmation dialog). **Ajustes** writes the Gemini key
+to `.env` (never to YAML) and everything else to `config/local.yaml`; the key is only ever shown masked.
+
+Demo data for the visual comparison with `design/*.png`: `scripts\demo.ps1` serves a separate
+`database/demo.db` + `storage_demo/` (created by `scripts/seed_demo.py`) and never touches `database/oms.db`.
+
 ## Operator checklist per video
 
 1. `daily` (or `new` + `export-prompts ID`).

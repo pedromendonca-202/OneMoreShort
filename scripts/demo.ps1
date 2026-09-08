@@ -1,4 +1,4 @@
-# Serve the panel against the demo database (screen comparison only). Never touches database/oms.db.
+﻿# Serve the panel against the demo database (screen comparison only). Never touches database/oms.db.
 $root = Split-Path -Parent $PSScriptRoot
 $env:OMS_PATHS__DATABASE_URL = "sqlite:///database/demo.db"
 $env:OMS_PATHS__STORAGE_ROOT = "storage_demo"
