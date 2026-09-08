@@ -50,10 +50,16 @@ class HTTPTrendSource:
         if self._owns_client:
             self._client.close()
 
+    # Wikimedia (and most public APIs) reject requests without a descriptive User-Agent.
+    USER_AGENT = "OneMoreShort/0.1 (+https://github.com/pmendonca-dev/OneMoreShort; trend research; contact via repo)"
+
     def _get(self, url: str, *, params: dict[str, Any] | None = None, headers: dict[str, str] | None = None) -> httpx.Response:
+        merged = {"User-Agent": self.USER_AGENT, "Accept": "application/json, application/rss+xml, application/xml;q=0.9, */*;q=0.8",
+                  **(headers or {})}
+
         @retrying(self.name, max_attempts=3, wait_initial=0.5, wait_max=8, exceptions=(httpx.HTTPError,))
         def request() -> httpx.Response:
-            response = self._client.get(url, params=params, headers=headers)
+            response = self._client.get(url, params=params, headers=merged)
             response.raise_for_status()
             return response
 

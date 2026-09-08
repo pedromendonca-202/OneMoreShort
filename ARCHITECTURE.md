@@ -207,3 +207,25 @@ Duration ≤ `max_duration_s`, 1080×1920, 24–30 fps, H.264 + AAC, audio prese
 ## 13. Operating modes
 
 `OMS_MODE=mock` runs the whole pipeline with deterministic fake LLM/Veo/TTS/YouTube adapters and ffmpeg-synthesized segments — used by tests and for validating the pipeline before any money is spent. `OMS_MODE=live` uses real APIs; `upload.enabled=false` keeps live generation local until publishing is switched on.
+
+---
+
+## 12. Manual visual generation mode (default since 2026-09-08)
+
+`generation.mode: manual` replaces the Veo API call with an explicit, validated hand-off:
+
+```
+export-prompts ──► storage/prompts/<ID>/manual_prompt_01..05.txt + MANUAL_VIDEO_HANDOFF.txt
+      │                    (operator generates the clips in Google Flow with subscription credits,
+      │                     chaining them with Extend or the previous clip's last frame)
+      ▼
+storage/manual_input/<ID>/segment_01..05.mp4 ──► collect-clips (validate, normalise, frames, concat)
+      ▼
+finish (narration, mix, captions, render, quality gate, metadata, upload) ──► analytics ──► learn
+```
+
+`watch <ID>` polls the inbox and runs the rest automatically; `daily` chains analytics, learning and
+today's production, stopping with a WAITING_FOR_HUMAN_ACTION report only while the clips are missing.
+Cost of a video in this mode: 0 USD on the Veo API; Gemini text/vision/TTS stay inside the free tier when
+the key belongs to a project without billing. The Veo client (`app/veo`) remains available behind
+`generation.mode: veo` for a future paid setup.

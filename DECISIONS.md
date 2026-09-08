@@ -42,3 +42,21 @@ Simplest reliable trigger on the operator's machine; a `scripts/register_daily_t
 
 **D-013 · 2026-09-07 · Default resolution 1080p at $0.08/s**
 Spec prefers 1080×1920. Cost $0.64/segment, $3.20/video visuals, well inside the $10/day default budget with 3 retries headroom for one segment. `veo.resolution` is configurable to 720p ($0.05/s) for cheaper iteration.
+
+**D-014 · 2026-09-08 · Manual visual generation is the default operating mode**
+The operator chose not to spend on the Veo API and to generate the five clips in Google Flow with the Google AI subscription credits already paid for. → Consequence: `generation.mode: manual`; the pipeline exports five prompts plus a hand-off, waits for the inbox (`watch`/`resume`), and everything after the clips stays automatic. `generation.mode: veo` remains an explicit paid opt-in.
+
+**D-015 · 2026-09-08 · Free-tier Gemini key must come from a project without billing**
+Google documents that the $300 Cloud trial credit cannot pay for the Gemini API in AI Studio, and the operator already has a billed trial account. → Consequence: SETUP instructs creating the AI Studio key in a separate project with no billing linked; TTS defaults to Gemini free tier with edge-tts as the no-key alternative.
+
+**D-016 · 2026-09-08 · One OAuth consent covers upload, read-only and analytics scopes**
+Analytics collection would otherwise require a second human authorization later. → Consequence: `YOUTUBE_SCOPES` requested once by `youtube-auth`; the token is reused by uploads, Data API stats and Analytics API reports.
+
+**D-017 · 2026-09-08 · Human actions commit state instead of rolling back**
+A `HumanActionRequired` raised mid-stage used to be discarded by the session rollback, leaving the production in the previous state with no report. → Consequence: the stage context commits the NEEDS_HUMAN_ACTION state and the stored report before re-raising, so `resume` continues from the right point.
+
+**D-018 · 2026-09-08 · Missed analytics checkpoints collapse into one snapshot**
+The collector may not run for hours or days. → Consequence: one snapshot labelled with the latest due slot and `raw.covers_slots`; values are never back-dated or interpolated.
+
+**D-019 · 2026-09-08 · ffmpeg output decoded as UTF-8; audio pinned to 48 kHz**
+cp1252 decoding crashed the subprocess reader thread on the accented OneDrive path, and loudnorm left the mix at 192 kHz. → Consequence: explicit `encoding="utf-8", errors="replace"` in the ffmpeg wrapper; `aresample=48000` after loudnorm and `-ar 48000` on the final render.

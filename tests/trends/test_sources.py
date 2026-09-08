@@ -85,3 +85,15 @@ def test_hacker_news_and_wikipedia_parse_api_payloads():
 ])
 def test_malformed_source_response_returns_no_signals(factory):
     assert factory().fetch(limit=5) == []
+
+
+def test_every_source_sends_a_descriptive_user_agent():
+    seen: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(request.headers.get("user-agent", ""))
+        return httpx.Response(200, json={"items": []}, request=request)
+
+    client = httpx.Client(transport=httpx.MockTransport(handler))
+    WikipediaTopViewedSource(client=client).fetch(limit=3)
+    assert seen and all("OneMoreShort" in agent for agent in seen)

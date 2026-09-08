@@ -111,6 +111,9 @@ class Orchestrator:
             self._record_llm_cost(session, pid, stage)
             record_event(session, action=action, status="needs_human_action", production_id=pid, stage=stage,
                          duration_ms=int((time.perf_counter() - started) * 1000), error=err.problem)
+            # A human action is a legitimate stop, not a failure: persist the state and the report so
+            # `resume` continues from here instead of the session rollback discarding the work.
+            session.commit()
             raise
         except Exception as err:
             self._record_llm_cost(session, pid, stage)

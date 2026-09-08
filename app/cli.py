@@ -12,6 +12,13 @@ from app.core.errors import HumanActionRequired, OMSError
 
 app = typer.Typer(no_args_is_help=True, add_completion=False, help="OneMoreShort: autonomous Shorts factory with manual Flow visuals.")
 
+# Windows consoles default to cp1252; paths and reports contain accents.
+for _stream in ("stdout", "stderr"):
+    try:
+        getattr(__import__("sys"), _stream).reconfigure(encoding="utf-8", errors="replace")
+    except (AttributeError, ValueError):  # not a real console (tests, pipes)
+        pass
+
 
 def _orchestrator():
     from app.pipeline.orchestrator import Orchestrator
