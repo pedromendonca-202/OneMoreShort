@@ -20,6 +20,7 @@ function applyAttrs(el, attrs) {
     else if (key.startsWith("on") && typeof value === "function") el.addEventListener(key.slice(2).toLowerCase(), value);
     else if (key === "dataset") Object.assign(el.dataset, value);
     else if (key === "value" || key === "checked" || key === "disabled" || key === "selected") el[key] = value;
+    else if ((key === "href" || key === "src") && /^\s*(javascript|data|vbscript):/i.test(String(value)) && !(key === "src" && /^\s*data:image\//i.test(String(value)))) continue;
     else el.setAttribute(key, value === true ? "" : String(value));
   }
 }
