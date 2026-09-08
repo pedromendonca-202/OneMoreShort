@@ -33,6 +33,13 @@ veo:
   observe_end_state: true
   check_continuity: true
 
+generation:
+  # Default workflow: export prompts, create five clips manually, then resume.
+  mode: manual             # manual | veo (legacy opt-in; paid API)
+  inbox_dir: storage/manual_input
+  accepted_extensions: [.mp4, .mov, .mkv, .webm]
+  require_numbered_files: false
+
 tts:
   provider: gemini    # gemini | edge | mock
   voice: Charon       # Gemini prebuilt voice (informative, deep)

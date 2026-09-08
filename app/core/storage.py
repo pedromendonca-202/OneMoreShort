@@ -6,7 +6,7 @@ from pathlib import Path
 
 KINDS = (
     "research", "scripts", "storyboards", "continuity", "prompts", "segments", "frames",
-    "audio", "captions", "renders", "published", "analytics", "reports", "trends",
+    "audio", "captions", "renders", "published", "analytics", "reports", "trends", "manual_input",
 )
 
 

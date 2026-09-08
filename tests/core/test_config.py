@@ -13,6 +13,7 @@ def test_defaults_come_from_yaml():
     assert s.veo.aspect_ratio == "9:16"
     assert s.veo.duration_seconds == 8
     assert s.veo.segments == 5
+    assert s.generation.mode == "manual"
     assert s.video.max_duration_s == 40
     assert s.video.width == 1080 and s.video.height == 1920
     assert s.limits.daily_budget_usd == 10

@@ -40,6 +40,15 @@ class VeoConfig(BaseModel):
     seed_base: int | None = None
 
 
+class GenerationConfig(BaseModel):
+    """How visual segments arrive in the pipeline."""
+
+    mode: Literal["manual", "veo"] = "manual"
+    inbox_dir: str = "storage/manual_input"
+    accepted_extensions: list[str] = Field(default_factory=lambda: [".mp4", ".mov", ".mkv", ".webm"])
+    require_numbered_files: bool = False
+
+
 class TTSConfig(BaseModel):
     provider: Literal["gemini", "edge", "mock"] = "gemini"
     voice: str = "Charon"
@@ -169,6 +178,7 @@ class Settings(BaseSettings):
 
     llm: LLMConfig = Field(default_factory=LLMConfig)
     veo: VeoConfig = Field(default_factory=VeoConfig)
+    generation: GenerationConfig = Field(default_factory=GenerationConfig)
     tts: TTSConfig = Field(default_factory=TTSConfig)
     video: VideoConfig = Field(default_factory=VideoConfig)
     captions: CaptionsConfig = Field(default_factory=CaptionsConfig)
@@ -197,8 +207,8 @@ class Settings(BaseSettings):
 
     def missing_live_requirements(self) -> list[str]:
         missing: list[str] = []
-        needs_google = self.llm.provider == "gemini" or self.tts.provider == "gemini" or True  # Veo always needs it
-        if needs_google and not self.google_api_key:
+        needs_google = self.llm.provider == "gemini" or self.tts.provider == "gemini" or self.generation.mode == "veo"
+        if self.is_live and needs_google and not self.google_api_key:
             missing.append("GOOGLE_API_KEY (Google AI Studio key with Cloud Billing enabled; required for Veo/Gemini)")
         if self.llm.provider == "anthropic" and not self.anthropic_api_key:
             missing.append("ANTHROPIC_API_KEY (required because llm.provider=anthropic)")
