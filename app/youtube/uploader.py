@@ -33,3 +33,14 @@ class GoogleYouTubeClient:
         video_id = response["id"]
         return UploadResult(video_id=video_id, status=response.get("status", {}).get("uploadStatus", "uploaded"),
                             url=f"https://www.youtube.com/watch?v={video_id}")
+
+    def video_stats(self, ids: list[str], age_minutes: int = 0):
+        from app.youtube.data_api import YouTubeDataAPI
+
+        return YouTubeDataAPI(service=self.service).video_stats(ids, age_minutes)
+
+    def post_comment(self, video_id: str, text: str) -> str | None:
+        """Top-level comment used as the pinned comment (pinning itself is a manual Studio action)."""
+        body = {"snippet": {"videoId": video_id, "topLevelComment": {"snippet": {"textOriginal": text}}}}
+        response = self.service.commentThreads().insert(part="snippet", body=body).execute()
+        return response.get("id")

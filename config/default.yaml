@@ -86,6 +86,7 @@ trends:
   per_source_limit: 25
   max_candidates: 12
   http_timeout_s: 20
+  manual_topic: null                # set a string to force the topic (otherwise selected by data)
 
 upload:
   enabled: false
@@ -108,7 +109,8 @@ limits:
 
 analytics:
   snapshot_schedule_min: [10, 30, 60, 180, 360, 720, 1440, 2880, 10080, 20160, 43200]
-  deep_metrics_after_hours: 48
+  deep_metrics_after_hours: 48      # Analytics API (retention, watch time) has 24-48h latency
+  learn_after_hours: 168            # ANALYZING -> LEARNED once the 7-day checkpoint exists
   retention_drop_threshold: 0.08
   growth_baseline_min_videos: 3
 

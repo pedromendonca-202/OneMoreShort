@@ -104,6 +104,7 @@ class TrendsConfig(BaseModel):
     reddit_subreddits: list[str] = Field(default_factory=lambda: ["todayilearned", "interestingasfuck", "Damnthatsinteresting", "science", "technology", "mildlyinteresting", "explainlikeimfive"])
     youtube_categories: list[str] = Field(default_factory=lambda: ["0", "28", "27", "24", "22"])
     http_timeout_s: int = 20
+    manual_topic: str | None = None  # set to force a topic instead of automatic selection (spec section 8)
 
 
 class UploadConfig(BaseModel):
@@ -130,6 +131,7 @@ class LimitsConfig(BaseModel):
 class AnalyticsConfig(BaseModel):
     snapshot_schedule_min: list[int] = Field(default_factory=lambda: [10, 30, 60, 180, 360, 720, 1440, 2880, 10080, 20160, 43200])
     deep_metrics_after_hours: int = 48
+    learn_after_hours: int = 168
     retention_drop_threshold: float = 0.08
     growth_baseline_min_videos: int = 3
 
