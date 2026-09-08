@@ -1,0 +1,130 @@
+# OneMoreShort default configuration.
+# Override locally with config/local.yaml (gitignored) or environment variables:
+#   OMS_MODE=live  OMS_VEO__RESOLUTION=720p  OMS_LIMITS__DAILY_BUDGET_USD=5
+# Secrets (OMS_GOOGLE_API_KEY, OMS_ANTHROPIC_API_KEY) belong in .env, never here.
+
+mode: mock            # mock | live
+timezone: America/Sao_Paulo
+log_level: INFO
+
+llm:
+  provider: gemini    # gemini | anthropic | mock
+  fast_model: gemini-3.8-flash
+  smart_model: gemini-3.1-pro-preview
+  vision_model: gemini-3.8-flash
+  anthropic_model: claude-opus-5
+  temperature: 0.7
+  max_output_tokens: 8192
+  timeout_s: 180
+  use_search_grounding: true
+
+veo:
+  model: veo-3.1-lite-generate-preview
+  resolution: 1080p   # 1080p ($0.08/s) | 720p ($0.05/s)
+  aspect_ratio: "9:16"
+  duration_seconds: 8
+  segments: 5
+  generate_audio: true
+  person_generation: allow_adult
+  poll_interval_s: 10
+  timeout_s: 900
+  continuity_strategy: chain_last_frame   # chain_last_frame | keyframe_interpolation | prompt_only
+  continuity_min_score: 0.6
+  observe_end_state: true
+  check_continuity: true
+
+tts:
+  provider: gemini    # gemini | edge | mock
+  voice: Charon       # Gemini prebuilt voice (informative, deep)
+  edge_voice: en-US-GuyNeural
+  gemini_model: gemini-2.5-flash-preview-tts
+  wpm: 165
+  max_atempo: 1.08
+  tighten_passes: 2
+
+video:
+  max_duration_s: 40
+  target_duration_s: 38
+  width: 1080
+  height: 1920
+  fps: 24
+  video_bitrate: 8M
+  audio_bitrate: 192k
+  logo_watermark: true
+  logo_path: assets/logo_youtube.png
+  logo_opacity: 0.75
+  logo_width_px: 140
+  music_enabled: true          # only if a track exists in assets/music/
+  music_gain_db: -18
+  veo_audio_gain_db: -8
+  narration_gain_db: 0
+  loudness_lufs: -14
+  true_peak_dbtp: -1
+
+captions:
+  enabled: true
+  font: Impact
+  font_size: 72
+  max_words: 3
+  position_pct: 0.62
+  uppercase: true
+  outline: 5
+  shadow: 2
+  margin_h_px: 80
+
+trends:
+  region: US
+  language: en
+  sources: [youtube, reddit, news_rss, hackernews, wikipedia, gtrends_rss]
+  per_source_limit: 25
+  max_candidates: 12
+  http_timeout_s: 20
+
+upload:
+  enabled: false
+  visibility: private        # draft | private | unlisted | scheduled | public
+  schedule_enabled: false
+  timezone: America/Sao_Paulo
+  publish_hour_local: 18
+  made_for_kids: false
+  default_category_id: "24"  # Entertainment (27 Education, 28 Science & Tech, 22 People & Blogs)
+  add_shorts_hashtag: true
+  post_pinned_comment: false
+
+limits:
+  daily_budget_usd: 10
+  max_video_generation_retries: 3
+  max_api_retries: 5
+  max_videos_per_day: 1
+  max_stage_attempts: 3
+  max_script_regenerations: 2
+
+analytics:
+  snapshot_schedule_min: [10, 30, 60, 180, 360, 720, 1440, 2880, 10080, 20160, 43200]
+  deep_metrics_after_hours: 48
+  retention_drop_threshold: 0.08
+  growth_baseline_min_videos: 3
+
+intelligence:
+  exploration_ratio: 0.30     # 70% proven formats / 30% experimentation
+  min_samples: 3
+  recency_window: 20
+  ab_testing_enabled: true
+  ab_dimensions: [hook_style, ending_style, caption_style]
+
+paths:
+  storage_root: storage
+  logs_dir: logs
+  database_url: sqlite:///database/oms.db
+  secrets_dir: secrets
+  assets_dir: assets
+  ffmpeg_binary: null        # auto-detect (PATH -> winget -> imageio-ffmpeg)
+
+brand:
+  name: OneMoreShort
+  tagline: One more. Always one more.
+  channel_handle: "@OneMoreShort"
+  visual_style: bold, cinematic, high-contrast, modern, energetic, internet-native, clean
+  palette: deep blacks, vivid red accents, crisp whites; occasional neon cyan/magenta highlights
+  narrator_persona: confident, curious, fast-talking American narrator; friendly, sharp, never condescending
+  audience: United States, 16-40, mobile-first, curious, skims fast
