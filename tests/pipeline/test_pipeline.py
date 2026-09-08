@@ -82,6 +82,66 @@ def test_finish_persists_generated_metadata_not_placeholders(settings):
         assert "narration_beat" in kinds and "mix" in kinds
 
 
+def test_publish_collect_and_learn_loop_in_mock(settings):
+    from datetime import UTC, datetime, timedelta
+
+    settings = _short_settings(settings)
+    settings.upload.enabled = True
+    settings.intelligence.min_samples = 1
+    t0 = datetime(2026, 9, 7, 12, 0, tzinfo=UTC)
+    current = {"now": t0}
+    o = Orchestrator(settings, clock=lambda: current["now"])
+    pid = o.new_production()
+    o.prepare(pid)
+    _fill_inbox(o, pid, settings)
+    o.collect(pid)
+    o.finish(pid)
+    assert o.status(pid)["state"] == "PUBLISHED"
+    assert o.status(pid)["youtube_video_id"].startswith("mock-")
+
+    current["now"] = t0 + timedelta(hours=1)
+    assert o.collect_analytics() == [pid]
+    assert o.status(pid)["state"] == "ANALYZING" and o.status(pid)["snapshots"] == 1
+
+    current["now"] = t0 + timedelta(days=8)
+    o.collect_analytics()
+    summary = o.learn()
+    assert summary.videos == 1 and "What hooks work?" in summary.answers
+    report = o.report(pid)
+    assert "VIDEO PERFORMANCE REPORT" in report and "NEXT VIDEO RECOMMENDATION" in report
+    assert o.status(pid)["state"] == "LEARNED"
+
+    metrics = o.metrics()
+    assert metrics["videos_generated"] == 1 and metrics["videos_published"] == 1
+    assert metrics["generation_success_rate"] == 1.0 and metrics["failure_rate"] == 0.0
+
+
+def test_daily_creates_and_prepares_one_production_then_waits_for_clips(settings):
+    settings = _short_settings(settings)
+    o = Orchestrator(settings)
+    summary = o.daily()
+    assert summary["production_id"].startswith("OMS-")
+    assert summary["state"] == "GENERATING" and summary["waiting_for_clips"] is True
+    again = o.daily()
+    assert again["production_id"] == summary["production_id"], "daily never starts a second production the same day"
+
+
+def test_resume_raises_precise_human_action_while_clips_are_missing(settings):
+    from app.core.errors import HumanActionRequired
+
+    settings = _short_settings(settings)
+    o = Orchestrator(settings)
+    pid = o.new_production()
+    try:
+        o.resume(pid)
+    except HumanActionRequired as err:
+        assert "0/5" in err.problem and pid in err.next_step
+    else:
+        raise AssertionError("resume must stop for the operator when the inbox is empty")
+    _fill_inbox(o, pid, settings)
+    assert o.resume(pid) == "READY"
+
+
 def test_finish_uses_music_and_logo_when_configured(settings, tmp_path):
     settings = _short_settings(settings)
     assets = tmp_path / "assets"

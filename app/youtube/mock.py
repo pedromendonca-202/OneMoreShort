@@ -25,3 +25,25 @@ class MockYouTubeClient:
 
     def retention_curve(self, video_id: str) -> list[RetentionPoint]:
         return [RetentionPoint(elapsed_ratio=i / 10, watch_ratio=max(.25, 1 - i * .07), relative=1.0) for i in range(11)]
+
+    def post_comment(self, video_id: str, text: str) -> str:
+        return f"comment-{video_id}"
+
+
+class MockAnalyticsClient:
+    """Deterministic stand-in for the YouTube Analytics API (deep metrics after 48 h)."""
+
+    def video_metrics(self, video_id: str, start, end) -> dict:
+        seed = sum(ord(ch) for ch in video_id) % 7
+        views = 4000 + seed * 500
+        return {"views": views, "engagedViews": int(views * 0.82), "estimatedMinutesWatched": round(views * 0.5, 1),
+                "averageViewDuration": 29.5 + seed * 0.5, "averageViewPercentage": 74.0 + seed, "likes": views // 12,
+                "dislikes": seed, "comments": views // 90, "shares": views // 45, "subscribersGained": views // 70,
+                "subscribersLost": seed}
+
+    def retention_curve(self, video_id: str, start, end) -> list[RetentionPoint]:
+        return [RetentionPoint(elapsed_ratio=i / 10, watch_ratio=max(.3, 1 - i * .06 - (.12 if i == 3 else 0)), relative=1.0)
+                for i in range(11)]
+
+    def traffic_sources(self, video_id: str, start, end) -> dict[str, int]:
+        return {"SHORTS": 3600, "SUBSCRIBER": 300, "EXTERNAL": 100}

@@ -411,6 +411,7 @@ class Orchestrator:
                     log.warning("quality_gate.failed", production_id=pid, checks=[c.name for c in report.checks if not c.passed])
                     return final
                 self._advance(production, State.READY)
+                production.finished_at = self.now()
 
             if self.settings.upload.enabled:
                 self._upload(session, production, final, meta)
@@ -527,3 +528,136 @@ class Orchestrator:
             return [{"id": p.id, "state": p.state.value, "cost_usd": round(p.cost_usd or 0, 4),
                      "topic": next((t.topic for t in p.topics if t.selected), None),
                      "youtube_video_id": p.upload.youtube_video_id if p.upload else None} for p in rows]
+
+    # ------------------------------------------------------------------ analytics + learning
+    def _analytics_clients(self) -> tuple[Any, Any | None]:
+        if self.settings.mode == "mock":
+            from app.youtube.mock import MockAnalyticsClient
+
+            return self.youtube, MockAnalyticsClient()
+        from app.youtube.analytics_api import YouTubeAnalyticsAPI
+        from app.youtube.auth import get_credentials
+        from app.youtube.data_api import YouTubeDataAPI
+
+        creds = get_credentials(self.settings.resolve(self.settings.youtube_client_secret_path),
+                                self.settings.resolve(self.settings.youtube_token_path))
+        return YouTubeDataAPI(credentials=creds), YouTubeAnalyticsAPI(credentials=creds)
+
+    def collect_analytics(self, now: datetime | None = None) -> list[str]:
+        """Capture every due checkpoint for every published video (spec sections 33 and 34)."""
+        from app.analytics.collector import collect_all_due
+
+        now = now or self.now()
+        stats_client, analytics_client = self._analytics_clients()
+        with session_scope(self.engine) as session:
+            with self._stage(session, None, "analytics", action="collect"):
+                return collect_all_due(session, stats_client, analytics_client, now=now, cfg=self.settings)
+
+    def learn(self, now: datetime | None = None):
+        """Refresh insights, strategy weights, knowledge base and per-video reports (spec sections 41 to 48)."""
+        from app.intelligence.learn import learn
+
+        with session_scope(self.engine) as session:
+            with self._stage(session, None, "intelligence", action="learn"):
+                return learn(session, self.storage, self.llm, self.settings, now=now or self.now())
+
+    def report(self, pid: str) -> str:
+        with session_scope(self.engine) as session:
+            production = self._get(session, pid)
+            if production.reports:
+                return production.reports[-1].markdown
+            if not production.snapshots:
+                raise ValueError(f"{pid} has no analytics snapshots yet; run `analytics` after publishing")
+        self.learn()
+        with session_scope(self.engine) as session:
+            production = self._get(session, pid)
+            if not production.reports:
+                raise ValueError(f"no report could be built for {pid}")
+            return production.reports[-1].markdown
+
+    def daily(self) -> dict[str, Any]:
+        """One scheduled run: collect analytics, learn, then advance today's production as far as possible."""
+        summary: dict[str, Any] = {"date": self.now().date().isoformat(), "collected": [], "learned_videos": 0,
+                                   "production_id": None, "state": None, "waiting_for_clips": False, "human_action": None}
+        try:
+            summary["collected"] = self.collect_analytics()
+        except HumanActionRequired as err:
+            summary["human_action"] = err.as_dict()
+        except Exception as err:  # analytics never blocks production
+            log.warning("daily.analytics_failed", error=str(err))
+        try:
+            summary["learned_videos"] = self.learn().videos
+        except Exception as err:
+            log.warning("daily.learn_failed", error=str(err))
+
+        prefix = f"OMS-{self.now():%Y%m%d}-"
+        with session_scope(self.engine) as session:
+            todays = session.query(Production).filter(Production.id.like(prefix + "%")).order_by(Production.id.desc()).first()
+            pid = todays.id if todays else None
+        if pid is None:
+            try:
+                pid = self.new_production()
+            except HumanActionRequired as err:
+                summary["human_action"] = err.as_dict()
+                return summary
+        summary["production_id"] = pid
+        try:
+            state = self.resume(pid)
+        except HumanActionRequired as err:
+            summary["human_action"] = err.as_dict()
+            state = self.status(pid)["state"]
+            summary["waiting_for_clips"] = state == State.GENERATING.value
+        summary["state"] = state
+        return summary
+
+    def metrics(self) -> dict[str, Any]:
+        """Operational metrics (spec section 31)."""
+        from sqlalchemy import func
+
+        from app.core.cost import spent_on_day
+        from app.core.models import Event, FinalVideo, Upload
+
+        with session_scope(self.engine) as session:
+            total = session.query(Production).count()
+            generated = session.query(FinalVideo).filter(FinalVideo.passed.is_(True)).count()
+            attempted = session.query(Production).filter(Production.state.in_([
+                State.EDITING, State.QUALITY_CHECK, State.READY, State.UPLOADING, State.PUBLISHED, State.ANALYZING,
+                State.LEARNED, State.NEEDS_REVIEW, State.FAILED])).count()
+            published = session.query(Upload).filter(Upload.youtube_video_id.isnot(None)).count()
+            failed = session.query(Production).filter(Production.state.in_([State.FAILED, State.NEEDS_REVIEW, State.BLOCKED])).count()
+            durations = [((p.finished_at - p.started_at).total_seconds()) for p in session.query(Production).all()
+                         if p.finished_at and p.started_at]
+            cost_total = session.query(func.sum(Production.cost_usd)).scalar() or 0.0
+            api_errors = session.query(Event).filter(Event.status == "failed", Event.api.isnot(None)).count()
+            upload_failures = session.query(Upload).filter(Upload.error.isnot(None)).count()
+            waiting = session.query(Production).filter(Production.state == State.GENERATING).count()
+            today = self.now().date()
+            return {
+                "productions": total,
+                "videos_generated": generated,
+                "videos_published": published,
+                "generation_success_rate": round(generated / attempted, 3) if attempted else 0.0,
+                "failure_rate": round(failed / total, 3) if total else 0.0,
+                "average_generation_time_s": round(sum(durations) / len(durations), 1) if durations else None,
+                "average_cost_per_video_usd": round(cost_total / generated, 4) if generated else 0.0,
+                "api_errors": api_errors,
+                "upload_failures": upload_failures,
+                "waiting_for_clips": waiting,
+                "spent_today_usd": round(spent_on_day(session, today), 4),
+                "daily_budget_usd": self.settings.limits.daily_budget_usd,
+            }
+
+    def costs(self, days: int = 30) -> dict[str, Any]:
+        from sqlalchemy import func
+
+        from app.core.cost import spent_on_day
+        from app.core.models import CostLedger
+
+        with session_scope(self.engine) as session:
+            since = self.now() - timedelta(days=days)
+            by_api = dict(session.query(CostLedger.api, func.sum(CostLedger.usd)).filter(CostLedger.at >= since)
+                          .group_by(CostLedger.api).all())
+            return {"today_usd": round(spent_on_day(session, self.now().date()), 4),
+                    "window_days": days, "window_usd": round(sum(by_api.values()), 4),
+                    "by_api": {api: round(float(usd or 0), 4) for api, usd in by_api.items()},
+                    "daily_budget_usd": self.settings.limits.daily_budget_usd}
