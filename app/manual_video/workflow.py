@@ -62,22 +62,51 @@ def export_prompts(production_id: str, storyboard: Storyboard, bible: Continuity
         prompt = build_prompt(scene, bible, storyboard, previous, _brand(cfg))
         prompt = prompt.model_copy(update={"config": {**prompt.config, "duration_seconds": duration}})
         path = folder / f"manual_prompt_{scene.segment:02d}.txt"
-        path.write_text(prompt.prompt + "\n\nNEGATIVE PROMPT:\n" + prompt.negative_prompt + "\n", encoding="utf-8")
+        header = (
+            f"SEGMENT {scene.segment} OF 5  |  {duration:g} seconds  |  portrait 9:16  |  no speech, no on-screen text\n"
+            + (
+                "HOW TO KEEP CONTINUITY IN FLOW: use 'Extend' on the previous clip, or start this clip from the last frame "
+                "of the previous clip (upload it as the starting image). Do NOT restart the scene.\n"
+                if scene.segment > 1
+                else "This is the opening clip. Generate it first; every later clip continues from it.\n"
+            )
+            + "-" * 72 + "\n\n"
+        )
+        path.write_text(header + prompt.prompt + "\n\nNEGATIVE PROMPT:\n" + prompt.negative_prompt + "\n", encoding="utf-8")
         prompts.append(path)
         previous = planned_end_state(scene, bible)
     instructions = folder / "MANUAL_VIDEO_HANDOFF.txt"
     instructions.write_text(
-        f"""ONE MORE SHORT — MANUAL VIDEO HANDOFF
+        f"""ONE MORE SHORT - MANUAL VIDEO HANDOFF
 
-1. Generate exactly five separate portrait clips from manual_prompt_01.txt through manual_prompt_05.txt.
-2. Each clip must be approximately {duration:g} seconds, portrait 9:16, H.264/AAC where possible.
-3. Put them in this exact folder:
+WHAT YOU ARE MAKING
+One continuous {duration * 5:g}-second vertical video, generated as five {duration:g} second clips.
+The five clips must look like ONE uninterrupted shot: same character, wardrobe, location, light, lens, camera motion.
+
+STEP BY STEP (Google Flow / Gemini app with your subscription credits)
+1. Open manual_prompt_01.txt, paste the prompt, set portrait 9:16 and {duration:g} second length, generate.
+   Pick the take whose LAST FRAME best matches the "Planned continuity state at end" in the prompt.
+2. For clips 2 to 5 use ONE of these, in order of preference:
+   a) Flow "Extend": extend the previous clip with the next prompt (best continuity, no restart).
+   b) "Frames to video": download the previous clip, take its last frame, upload it as the START image,
+      then paste the next prompt.
+   c) Text only (weakest): paste the prompt; it already describes the exact end state of the previous clip.
+3. Never let a clip restart the scene, cut to a new angle, add speech, subtitles, logos or on-screen text.
+   Narration, captions and music are added automatically later.
+4. Download each clip as MP4 (H.264/AAC where offered). 720p or 1080p are both accepted.
+
+WHERE TO PUT THE FILES (exact folder)
    {inbox}
-4. Preferred names: segment_01.mp4, segment_02.mp4, segment_03.mp4, segment_04.mp4, segment_05.mp4.
-   If names are not numbered, the system will accept exactly five video files and sort them naturally.
-5. Resume the production. The system will validate, normalize, extract boundary frames, concatenate, caption, render, and upload.
+Names: segment_01.mp4, segment_02.mp4, segment_03.mp4, segment_04.mp4, segment_05.mp4
+If names are not numbered, the system accepts exactly five video files and sorts them naturally.
 
-No Veo API request is sent in this workflow.
+WHAT HAPPENS NEXT (automatic)
+Run:  python -m app.cli watch {production_id}     (waits for the five files, then continues by itself)
+or:   python -m app.cli collect-clips {production_id}  then  python -m app.cli finish {production_id}
+The system validates, normalizes to 1080x1920/24fps, extracts boundary frames, concatenates, narrates,
+captions, mixes audio, runs the quality gate, generates title/description/hashtags and uploads (if enabled).
+
+No Veo API request is sent in this workflow. Cost: 0 USD.
 """,
         encoding="utf-8",
     )

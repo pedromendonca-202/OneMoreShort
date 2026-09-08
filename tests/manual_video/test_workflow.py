@@ -37,6 +37,21 @@ def test_export_prompts_and_collect_five_manually_created_segments(session, stor
     assert [record.index for record in result.records] == [1, 2, 3, 4, 5]
 
 
+def test_handoff_explains_flow_continuity_and_exact_inbox(storage, settings):
+    production_id = "OMS-20260907-0101"
+    package = export_prompts(production_id, _storyboard(), _bible(), storage, settings)
+    text = package.instructions.read_text(encoding="utf-8")
+    inbox = inbox_for(production_id, storage, settings)
+    assert str(inbox) in text
+    assert "9:16" in text and "8 second" in text
+    # Continuity guidance for a manual Flow session: chain clips instead of restarting scenes.
+    assert "Extend" in text and "last frame" in text.lower()
+    assert "segment_01.mp4" in text and "segment_05.mp4" in text
+    # Each prompt file carries its own continuity hand-off for the operator.
+    prompt_2 = package.prompt_files[1].read_text(encoding="utf-8")
+    assert "CONTINUITY" in prompt_2.upper()
+
+
 def test_manual_collector_refuses_ambiguous_or_incomplete_inbox(storage, settings):
     inbox_for("OMS-20260907-0100", storage, settings).joinpath("one.mp4").touch()
     try:

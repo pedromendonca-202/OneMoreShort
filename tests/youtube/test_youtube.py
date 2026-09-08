@@ -19,6 +19,14 @@ def test_mock_upload_and_stats_evolve(tmp_path):
     assert client.video_stats([uploaded.video_id], age_minutes=60)[0].views > 0
 
 
+def test_single_consent_covers_upload_and_analytics_scopes():
+    from app.youtube.auth import YOUTUBE_SCOPES
+
+    assert "https://www.googleapis.com/auth/youtube.upload" in YOUTUBE_SCOPES
+    assert "https://www.googleapis.com/auth/youtube.readonly" in YOUTUBE_SCOPES
+    assert "https://www.googleapis.com/auth/yt-analytics.readonly" in YOUTUBE_SCOPES
+
+
 def test_missing_oauth_secret_has_precise_human_action(tmp_path):
     with pytest.raises(HumanActionRequired) as error:
         get_credentials(tmp_path / "missing.json", tmp_path / "token.json", ["scope"])

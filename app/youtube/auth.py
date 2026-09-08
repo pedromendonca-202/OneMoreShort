@@ -5,8 +5,18 @@ from pathlib import Path
 
 from app.core.errors import HumanActionRequired
 
+# One consent screen covers upload, read-only Data API calls (stats, channel) and Analytics API
+# reports, so analytics collection never needs a second human authorization.
+YOUTUBE_SCOPES: list[str] = [
+    "https://www.googleapis.com/auth/youtube.upload",
+    "https://www.googleapis.com/auth/youtube.readonly",
+    "https://www.googleapis.com/auth/youtube.force-ssl",
+    "https://www.googleapis.com/auth/yt-analytics.readonly",
+]
 
-def get_credentials(client_secret_path: Path | str, token_path: Path | str, scopes: list[str]):
+
+def get_credentials(client_secret_path: Path | str, token_path: Path | str, scopes: list[str] | None = None):
+    scopes = list(scopes or YOUTUBE_SCOPES)
     secret, token = Path(client_secret_path), Path(token_path)
     if not secret.is_file():
         raise HumanActionRequired(
@@ -14,8 +24,9 @@ def get_credentials(client_secret_path: Path | str, token_path: Path | str, scop
             root_cause="YouTube uploads require an OAuth Desktop App client, not an API key.",
             automated="Checked configuration and preserved the production for resume.",
             remains="Create/download the OAuth client secret and authorize this local application once.",
-            action=f"1) In Google Cloud enable YouTube Data API v3. 2) Create OAuth Client ID of type Desktop app. "
-                   f"3) Download JSON to {secret}. 4) Run oms youtube auth and approve the browser prompt.",
+            action=f"1) In Google Cloud enable YouTube Data API v3 and YouTube Analytics API. 2) Create OAuth Client ID "
+                   f"of type Desktop app. 3) Download JSON to {secret}. 4) Run `python -m app.cli youtube-auth` and "
+                   f"approve the browser prompt once (upload + analytics scopes).",
             next_step="The pipeline will resume upload after the token is saved.",
         )
     from google.auth.transport.requests import Request

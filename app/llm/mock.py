@@ -109,12 +109,30 @@ def fill_model(model_cls: type[BaseModel], depth: int = 0) -> BaseModel:
     return model_cls.model_validate(data)
 
 
+def _mock_video_metadata(req: LLMRequest) -> dict[str, Any]:
+    """VideoMetadata has cross-field rules (must include #Shorts) that generic filling cannot satisfy."""
+    return {
+        "title": "The Strange Reason This Works",
+        "description": "A quick, source-aware explanation of a surprising fact. Generated in mock mode.",
+        "hashtags": ["#Shorts", "#Science", "#OneMoreShort"],
+        "tags": ["shorts", "science", "facts"],
+        "category_id": "27",
+        "pinned_comment": "Which part surprised you most?",
+        "thumbnail_time_s": 1.5,
+    }
+
+
+DEFAULT_HANDLERS: dict[str, Handler] = {
+    "VideoMetadata": _mock_video_metadata,
+}
+
+
 class MockLLM(BaseLLM):
     name = "mock"
 
     def __init__(self, handlers: dict[str, Handler] | None = None, default_text: str = "mock response"):
         super().__init__()
-        self.handlers: dict[str, Handler] = dict(handlers or {})
+        self.handlers: dict[str, Handler] = {**DEFAULT_HANDLERS, **dict(handlers or {})}
         self.default_text = default_text
         self.calls: list[LLMRequest] = []
 
