@@ -44,7 +44,7 @@ CATEGORY_LABELS: dict[str, str] = {
 
 HOOK_LABELS = {"curiosity": "Curiosidade", "question": "Pergunta", "shock": "Choque", "contrarian": "Contrarian",
                "story": "História", "visual": "Revelação visual", "mystery": "Mistério"}
-ENDING_LABELS = {"loop": "Fecho em loop", "cta": "Chamada para ação", "cliff": "Suspense", "statement": "Afirmação"}
+ENDING_LABELS = {"loop": "Fecho em loop", "cta": "Chamada para ação", "cliff": "Suspense", "statement": "Afirmação", "question": "Pergunta direta"}
 PURPOSE_STRUCT = {"hook": "Gancho", "setup": "Contexto", "escalation": "Escalada", "revelation": "Revelação",
                   "payoff": "Payoff", "ending": "Fecho"}
 METRIC_LABELS = {"retention": "retenção", "completion": "conclusão", "views": "views", "engagement": "engajamento",
@@ -779,9 +779,18 @@ def analytics_view(ctx, session: Session, production: Production) -> dict[str, A
         else:
             ann["label"] = f"{value:.0f}%"
         annotations.append(ann)
+    # Milestones keep the chart readable when the analysis found fewer than three drops.
+    for frac in (0.4, 0.8):
+        if not points or len([a for a in annotations if a.get("kind") == "small"]) >= 4:
+            break
+        t = round(duration * frac)
+        if all(abs(t - float(a["t"])) > duration * 0.15 for a in annotations):
+            value = _resample(points, [t])[0]
+            annotations.append({"t": t, "value": round(value, 1), "label": f"{value:.0f}%", "sub": f"Aos {t:.0f}s", "kind": "small"})
     if points:
         t, v = points[-1]
         annotations.append({"t": t, "value": v, "label": f"{v:.0f}%", "sub": f"Aos {t:.0f}s", "note": "(final do vídeo)", "kind": "small"})
+    annotations.sort(key=lambda a: float(a["t"]))
     script_timeline = []
     for beat in beats:
         start, end = float(beat.get("start_s", 0)), float(beat.get("end_s", 0))
@@ -901,7 +910,7 @@ def intelligence_view(ctx, session: Session) -> dict[str, Any]:
          "text": f"{ENDING_LABELS.get(ending.value, ending.value)} gera mais inscrições." if ending else "Sem dados suficientes.", "n": ending.n if ending else 0},
     ]
     ranked = sorted((i for i in insights if i.metric in {"retention", "completion", "sub_conversion", "views"} and i.effect > 0),
-                    key=lambda i: abs(i.effect) * i.confidence, reverse=True)
+                    key=lambda i: (i.confidence, abs(i.effect)), reverse=True)
     patterns = []
     for i in ranked[:5]:
         value_label = {"hook_type": HOOK_LABELS, "ending_type": ENDING_LABELS}.get(i.feature, {}).get(i.value) or \

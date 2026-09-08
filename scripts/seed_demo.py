@@ -229,15 +229,15 @@ def seed(clips: int) -> None:
 
         # ---- intelligence
         session.add_all([
-            Insight(feature="hook_type", value="question", metric="retention", effect=0.1954, n=18, confidence=0.92,
+            Insight(created_at=local(0, 8, 25), feature="hook_type", value="question", metric="retention", effect=0.1954, n=18, confidence=0.92,
                     detail={"title": "Gancho com pergunta + revelação visual segura", "tags": ["Gancho", "Retenção"]}),
-            Insight(feature="duration_bucket", value="32-40s", metric="completion", effect=0.27, n=16, confidence=0.87,
+            Insight(created_at=local(0, 8, 25), feature="duration_bucket", value="32-40s", metric="completion", effect=0.27, n=16, confidence=0.87,
                     detail={"title": "Vídeos entre 31s e 36s têm melhor conclusão", "tags": ["Duração", "Conclusão"], "gain": "+27%", "suffix": "de conclusão"}),
-            Insight(feature="category", value="science", metric="sub_conversion", effect=2.2, n=18, confidence=0.84,
+            Insight(created_at=local(0, 8, 25), feature="category", value="science", metric="sub_conversion", effect=2.2, n=18, confidence=0.84,
                     detail={"title": "Temas de ciência e curiosidades convertem mais inscritos", "tags": ["Tema", "Inscritos"], "gain": "+3,2x", "suffix": "inscritos"}),
-            Insight(feature="ending_type", value="question", metric="sub_conversion", effect=1.8, n=14, confidence=0.78,
+            Insight(created_at=local(0, 8, 25), feature="ending_type", value="question", metric="sub_conversion", effect=1.8, n=14, confidence=0.78,
                     detail={"title": "Finais com pergunta direta aumentam inscrições em", "tags": ["Final", "Conversão"], "gain": "+180%", "suffix": ""}),
-            Insight(feature="visual_style", value="dynamic", metric="retention", effect=0.32, n=12, confidence=0.71,
+            Insight(created_at=local(0, 8, 25), feature="visual_style", value="dynamic", metric="retention", effect=0.32, n=12, confidence=0.71,
                     detail={"title": "Vídeos com elementos visuais dinâmicos têm", "tags": ["Edição", "Retenção"], "gain": "+32%", "suffix": "de retenção"}),
         ])
         session.add(StrategyWeightsRow(created_at=local(0, 8, 25), weights={"duration_pref": 33.5, "category_weights": {"science": 1.4}}, exploration_ratio=0.3, based_on_n=18))

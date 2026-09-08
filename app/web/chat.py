@@ -198,10 +198,11 @@ def tool_consultar_inteligencia(ctx, args: NoArgs) -> ChatReply:
 def tool_consultar_custos(ctx, args: CostArgs) -> ChatReply:
     costs = ctx.orchestrator.costs(args.days)
     today = costs["today_usd"]
-    text = (f"Gasto hoje: US$ {today:.2f}. Nos últimos {args.days} dias: US$ {costs['window_usd']:.2f}"
-            f" (limite diário US$ {costs['daily_budget_usd']:.2f}).").replace(".", ",")
+    usd = lambda value: f"US$ {value:.2f}".replace(".", ",")  # noqa: E731
+    text = f"Gasto hoje: {usd(today)}. Nos últimos {args.days} dias: {usd(costs['window_usd'])} (limite diário {usd(costs['daily_budget_usd'])})."
     if today == 0 and costs["window_usd"] == 0:
-        text = f"Nenhum gasto: os clipes são gerados no Flow com os créditos da assinatura e o Gemini roda na camada gratuita. Limite diário configurado: US$ {costs['daily_budget_usd']:.2f}.".replace(".", ",")
+        text = ("Nenhum gasto: os clipes são gerados no Flow com os créditos da assinatura e o Gemini roda na camada gratuita. "
+                f"Limite diário configurado: {usd(costs['daily_budget_usd'])}.")
     return ChatReply(text=text, tool_calls=["consultar_custos"])
 
 

@@ -283,6 +283,7 @@
   align-items: flex-start;
   justify-content: center;
 }
+.scr-hoje .tl-rail .check-dot { flex: 0 0 auto; width: 34px; height: 34px; box-sizing: border-box; }
 
 .scr-hoje .tl-line {
   position: absolute;

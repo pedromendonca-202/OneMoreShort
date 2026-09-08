@@ -228,7 +228,8 @@
 .scr-ajustes .c-publish .field { gap: 4px; }
 .scr-ajustes .c-publish .input,
 .scr-ajustes .c-publish .select { height: 36px; }
-.scr-ajustes .c-publish .textarea { min-height: 72px; }
+.scr-ajustes .c-publish .textarea { min-height: 86px; }
+.scr-ajustes input[type="time"]::-webkit-calendar-picker-indicator { opacity: 0; }
 .scr-ajustes .toggle.lg .track { width: 50px; height: 28px; border-radius: 14px; }
 .scr-ajustes .toggle.lg .track::after { width: 22px; height: 22px; }
 .scr-ajustes .toggle.lg input:checked + .track::after { transform: translateX(22px); }

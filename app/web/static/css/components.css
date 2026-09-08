@@ -203,7 +203,7 @@
 @keyframes toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
 /* ---------- states ---------- */
-.empty { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 56px 24px; gap: 12px; color: var(--text-2); }
+.empty:not(.check-dot) { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 56px 24px; gap: 12px; color: var(--text-2); }
 .empty .empty-icon { width: 72px; height: 72px; border-radius: 50%; background: var(--surface-3); border: 1px solid var(--border); display: grid; place-items: center; color: var(--red); margin-bottom: 6px; }
 .empty .empty-icon .ic { width: 32px; height: 32px; }
 .empty h3 { color: var(--text); font-size: 20px; font-weight: 700; letter-spacing: -.01em; }

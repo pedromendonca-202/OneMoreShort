@@ -119,7 +119,7 @@ def test_intelligence_view(client, channel):
     assert highlights["themes"]["value"] == "3,2x"
     assert highlights["duration"]["value"] == "32s – 40s"
     assert highlights["endings"]["value"] == "2,8x"
-    assert len(data["patterns"]) == 5 and data["patterns"][0]["confidence"] == 84 and data["patterns"][0]["feature"] == "category"
+    assert len(data["patterns"]) == 5 and data["patterns"][0]["confidence"] == 92 and data["patterns"][0]["feature"] == "hook_type"
     themes = {t["category"]: t for t in data["themes"]}
     assert themes["ciência"]["retention"] == 81 and themes["ciência"]["subs_per_1k"] == 6.8
     assert data["structures"][0]["name"].startswith("Gancho → Contexto")

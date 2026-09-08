@@ -1,5 +1,5 @@
 // Desempenho: per-video analytics (KPIs, retention curve with annotations, script timeline, learnings, comparison).
-import { h, icon, svg } from "../dom.js";
+import { h, icon, svg, append } from "../dom.js";
 import { api } from "../api.js";
 import { sse } from "../sse.js";
 import { fmtInt } from "../format.js";
@@ -243,9 +243,9 @@ function annotationBalloon(a, xPct, yPct, value) {
   const major = a.kind === "major";
   const el = h("div", { class: `dp-note ${major ? "major" : "small"}` });
   if (major) {
-    el.append(h("b", {}, a.label || ""), a.sub ? h("span", {}, a.sub) : null, a.sentence ? h("span", { class: "dp-note-quote" }, `“${a.sentence}”`) : null);
+    append(el, [h("b", {}, a.label || ""), a.sub ? h("span", {}, a.sub) : null, a.sentence ? h("span", { class: "dp-note-quote" }, `“${a.sentence}”`) : null]);
   } else {
-    el.append(h("b", {}, a.label || ""), a.sub ? h("span", {}, a.sub) : null, a.note ? h("span", {}, a.note) : null);
+    append(el, [h("b", {}, a.label || ""), a.sub ? h("span", {}, a.sub) : null, a.note ? h("span", {}, a.note) : null]);
   }
   const anchorRight = xPct > 88;
   if (anchorRight) el.style.right = `calc(${(100 - xPct).toFixed(2)}% + 10px)`;

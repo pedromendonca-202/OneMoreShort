@@ -1,7 +1,7 @@
 /* screens/inteligencia — reference design/06-inteligencia.png (1491x1055) */
 .scr-inteligencia { position: relative; display: flex; flex-direction: column; gap: 10px; margin-top: -8px; }
-.scr-inteligencia .int-note { position: absolute; right: 0; top: -6px; width: 111px; height: 106px; z-index: 2; pointer-events: none; }
-.scr-inteligencia .int-highlights { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
+.scr-inteligencia .int-note { position: absolute; right: -4px; top: -4px; width: 111px; height: 106px; z-index: 2; pointer-events: none; }
+.scr-inteligencia .int-highlights { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; padding-right: 84px; }
 .scr-inteligencia .int-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
 .scr-inteligencia .int-col { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 .scr-inteligencia .int-none { color: var(--text-3); font-size: 13px; padding: 8px 0; }
@@ -12,7 +12,7 @@
 .scr-inteligencia .int-hl-top { display: flex; align-items: center; gap: 10px; }
 .scr-inteligencia .int-hl-top .icon-circle.lg { width: 44px; height: 44px; }
 .scr-inteligencia .int-hl-top .icon-circle.lg .ic { width: 22px; height: 22px; }
-.scr-inteligencia .int-hl-top h3 { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; font-weight: 700; letter-spacing: -.03em; line-height: 1.2; }
+.scr-inteligencia .int-hl-top h3 { min-width: 0; font-size: 12px; font-weight: 700; letter-spacing: -.03em; line-height: 1.15; }
 .scr-inteligencia .int-hl-value { display: flex; align-items: baseline; gap: 9px; margin-top: 7px; }
 .scr-inteligencia .int-hl-value b { font-size: 30px; font-weight: 800; letter-spacing: -.02em; line-height: 1; white-space: nowrap; }
 .scr-inteligencia .int-hl-value span { font-size: 12px; color: var(--text-2); line-height: 1.15; }
@@ -85,7 +85,7 @@
 .scr-inteligencia .int-filter .ic { color: var(--text-2); pointer-events: none; }
 .scr-inteligencia .int-filter:focus-within { outline: 2px solid var(--red); outline-offset: 2px; }
 .scr-inteligencia .int-scatter-wrap { display: flex; align-items: flex-start; gap: 10px; height: 232px; overflow: hidden; }
-.scr-inteligencia .int-scatter { flex: 0 0 auto; width: 436px; height: 232px; display: block; overflow: visible; }
+.scr-inteligencia .int-scatter { flex: 0 0 auto; width: 400px; height: 232px; display: block; overflow: visible; }
 .scr-inteligencia .int-scatter .grid line { stroke: #252C35; stroke-width: 1; stroke-dasharray: 2 4; }
 .scr-inteligencia .int-scatter .axis { stroke: #2A313B; stroke-width: 1; }
 .scr-inteligencia .int-scatter text { font-family: var(--font); fill: var(--text-2); }
@@ -96,10 +96,10 @@
 .scr-inteligencia .int-scatter .pt { fill-opacity: .9; stroke: rgba(255, 255, 255, .22); stroke-width: 1; cursor: pointer; transition: fill-opacity .15s; }
 .scr-inteligencia .int-scatter .pt:hover, .scr-inteligencia .int-scatter .pt:focus-visible { fill-opacity: 1; stroke: #fff; outline: none; }
 .scr-inteligencia .int-scatter .pt.dim { fill-opacity: .12; stroke: transparent; cursor: default; }
-.scr-inteligencia .int-legend { flex: 1 1 auto; min-width: 0; max-height: 232px; padding-top: 2px; overflow-y: auto; }
+.scr-inteligencia .int-legend { flex: 1 1 auto; min-width: 128px; max-height: 232px; padding-top: 2px; overflow: hidden; }
 .scr-inteligencia .int-legend-title { display: block; font-size: 12px; color: var(--text-2); margin-bottom: 10px; white-space: nowrap; }
 .scr-inteligencia .int-legend ul { display: flex; flex-direction: column; gap: 9px; }
-.scr-inteligencia .int-legend li { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--text); }
+.scr-inteligencia .int-legend li { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text); white-space: nowrap; }
 .scr-inteligencia .int-legend-dot { width: 12px; height: 12px; border-radius: 50%; flex: 0 0 auto; }
 
 /* themes table */

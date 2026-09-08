@@ -15,10 +15,6 @@ const ACCEPT = "video/mp4,video/quicktime,video/x-matroska,video/webm,.mp4,.mov,
 const VISIBILITY = [["private", "Privado"], ["unlisted", "Não listado"], ["public", "Público"], ["scheduled", "Agendado"]];
 const CONTINUITY = "Gere a cena 1 primeiro. Nas seguintes, use Extend ou o último quadro como imagem inicial. Nunca recomece a cena.";
 
-// The seeded current production has no durable rendered thumbnail. Keep the
-// demo screen representative without changing the thumbnail source for real work.
-const DEMO_SUMMARY_THUMBS = { "OMS-20260908-0001": "glass.jpg" };
-
 function safePublishedUrl(value) {
   if (typeof value !== "string" || !value.trim()) return null;
   const raw = value.trim();
@@ -41,11 +37,6 @@ function eagerThumb(url, options) {
   const image = thumb.querySelector("img");
   if (image) image.loading = "eager";
   return thumb;
-}
-
-function summaryThumbnail(data) {
-  const demo = DEMO_SUMMARY_THUMBS[data?.id];
-  return demo ? `/static/img/demo/${demo}` : data?.thumb_url;
 }
 
 export async function render(container, params, query) {
@@ -199,7 +190,7 @@ function summaryCard(ctx) {
     icon: "chart-column", title: "Resumo da produção", cls: "sum-card",
     action: LinkAction("Editar tema", { onClick: () => editTopic(ctx) }),
     body: [
-      h("div", { class: "sum-top" }, eagerThumb(summaryThumbnail(d), { cls: "sum-thumb", alt: "" }),
+      h("div", { class: "sum-top" }, eagerThumb(d.thumb_url, { cls: "sum-thumb", alt: "" }),
         h("div", { class: "sum-meta" }, h("span", { class: "sum-label" }, "Tema"), h("h3", { class: "sum-title" }, d.title || d.topic || "—"),
           d.category ? Pill(d.category, "red-solid", { size: "sum-pill" }) : null)),
       h("div", { class: "sum-stats" },
