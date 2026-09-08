@@ -49,3 +49,8 @@ Thumbs.db
 desktop.ini
 .vscode/
 .idea/
+
+# --- demo data for screen comparison ---
+storage_demo/
+.playwright-mcp/
+docs/captures/work/

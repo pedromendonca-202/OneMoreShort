@@ -908,8 +908,10 @@ def intelligence_view(ctx, session: Session) -> dict[str, Any]:
             (category_label(i.value) if i.feature == "category" else _bucket_label(i.value) if i.feature == "duration_bucket" else i.value)
         metric = METRIC_LABELS.get(i.metric, i.metric)
         gain = f"{i.effect * base_ret * 100:+.0f} pts" if i.metric == "retention" and base_ret else f"{i.effect * 100:+.0f}%"
-        patterns.append({"feature": i.feature, "value": i.value, "title": f"{FEATURE_LABELS.get(i.feature, i.feature)} {value_label} tem",
-                         "gain": gain, "suffix": f"de {metric}", "tags": [FEATURE_LABELS.get(i.feature, i.feature), metric.capitalize()],
+        extra = i.detail or {}  # the learning loop may store a human phrasing of the pattern
+        patterns.append({"feature": i.feature, "value": i.value, "title": extra.get("title") or f"{FEATURE_LABELS.get(i.feature, i.feature)} {value_label} tem",
+                         "gain": extra.get("gain") or gain, "suffix": extra.get("suffix", f"de {metric}"),
+                         "tags": extra.get("tags") or [FEATURE_LABELS.get(i.feature, i.feature), metric.capitalize()],
                          "confidence": round(i.confidence * 100), "n": i.n})
     by_cat: dict[str, list[dict]] = {}
     for o in outcomes:
@@ -931,6 +933,8 @@ def intelligence_view(ctx, session: Session) -> dict[str, Any]:
                            "result": f"{(ret - base_ret) * 100:+.0f}% retenção" if base_ret else f"{ret * 100:.0f}% retenção", "n": len(group)})
     strategy = session.query(StrategyWeightsRow).order_by(StrategyWeightsRow.id.desc()).first()
     pref = float((strategy.weights or {}).get("duration_pref") or 0) if strategy else 0
+    if pref:
+        highlights[2]["value"] = f"{pref - 2.5:.0f}s – {pref + 2.5:.0f}s"
     scatter = {"points": [{"duration": o.get("duration_s", 0), "retention": round((o.get("retention", 0) or 0) * 100), "views": o.get("views", 0),
                            "category": category_label(o.get("category")), "id": o.get("production_id"), "title": o.get("title")} for o in outcomes],
                "ideal": {"min": pref - 2.5, "max": pref + 2.5, "label": f"Zona ideal ({pref - 2.5:.0f}s – {pref + 2.5:.0f}s)"} if pref else None,
