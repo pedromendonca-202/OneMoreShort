@@ -1,7 +1,9 @@
 from __future__ import annotations
 from app.analytics.schemas import Drop, RetentionAnalysis
 def analyze_retention(curve, script=None, storyboard=None, threshold=.08) -> RetentionAnalysis:
-    points=[(float(getattr(p,"elapsed_ratio",p.get("elapsed_ratio"))),float(getattr(p,"watch_ratio",p.get("watch_ratio")))) for p in curve]
+    def value(point, key):
+        return point.get(key) if isinstance(point, dict) else getattr(point, key)
+    points=[(float(value(p,"elapsed_ratio")),float(value(p,"watch_ratio"))) for p in curve]
     drops=[]
     for (x0,y0),(x1,y1) in zip(points,points[1:]):
         if y0-y1>=threshold:

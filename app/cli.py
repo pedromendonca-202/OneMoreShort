@@ -11,7 +11,7 @@ def init_db(): orch();typer.echo("Database ready.")
 @app.command("new")
 def new(): typer.echo(orch().new_production())
 @app.command("export-prompts")
-def export_prompts(production_id:str): 
+def export_prompts(production_id:str):
  p=orch().prepare(production_id);typer.echo(f"Prompts: {p.instructions}\nInbox: {p.inbox}")
 @app.command("collect-clips")
 def collect_clips(production_id:str): typer.echo(orch().collect(production_id).concat_path)
