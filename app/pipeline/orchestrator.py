@@ -12,7 +12,7 @@ import time
 from contextlib import contextmanager
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any, Callable, Iterator
 from zoneinfo import ZoneInfo
 
 from sqlalchemy.orm import Session
@@ -70,6 +70,9 @@ class Orchestrator:
         self._youtube = youtube
         self._tts = tts
         self.now = clock or (lambda: datetime.now(UTC))
+        # Optional observer used by the web panel: called as on_stage(stage, status) with status
+        # "started" | "ok" | "failed" | "needs_human_action" for every pipeline stage.
+        self.on_stage: Callable[[str, str], None] | None = None
 
     # ------------------------------------------------------------------ providers
     @property
@@ -105,6 +108,7 @@ class Orchestrator:
     def _stage(self, session: Session, pid: str | None, stage: str, action: str = "run") -> Iterator[None]:
         """Record one structured event (spec section 31) with duration, status, error and LLM cost."""
         started = time.perf_counter()
+        self._notify(stage, "started")
         try:
             yield
         except HumanActionRequired as err:
@@ -114,15 +118,26 @@ class Orchestrator:
             # A human action is a legitimate stop, not a failure: persist the state and the report so
             # `resume` continues from here instead of the session rollback discarding the work.
             session.commit()
+            self._notify(stage, "needs_human_action")
             raise
         except Exception as err:
             self._record_llm_cost(session, pid, stage)
             record_event(session, action=action, status="failed", production_id=pid, stage=stage,
                          duration_ms=int((time.perf_counter() - started) * 1000), error=str(err))
+            self._notify(stage, "failed")
             raise
         cost = self._record_llm_cost(session, pid, stage)
         record_event(session, action=action, status="ok", production_id=pid, stage=stage,
                      duration_ms=int((time.perf_counter() - started) * 1000), cost_usd=cost or None)
+        self._notify(stage, "ok")
+
+    def _notify(self, stage: str, status: str) -> None:
+        if self.on_stage is None:
+            return
+        try:
+            self.on_stage(stage, status)
+        except Exception as err:  # an observer must never break the pipeline
+            log.warning("on_stage.failed", stage=stage, error=str(err))
 
     def _record_llm_cost(self, session: Session, pid: str | None, stage: str) -> float:
         drain = getattr(self._llm, "drain_cost", None)

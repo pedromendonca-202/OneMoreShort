@@ -1,0 +1,29 @@
+# Runtime dependencies (pinned). Install with: .venv\Scripts\python.exe -m pip install -r requirements.txt
+pydantic==2.13.5
+pydantic-settings==2.15.0
+PyYAML==6.0.3
+SQLAlchemy==2.0.52
+structlog==26.1.0
+typer==0.27.2
+tenacity==9.1.4
+httpx==0.28.1
+feedparser==6.0.14
+google-genai==2.22.0
+google-api-python-client==2.200.0
+google-auth==2.57.1
+google-auth-httplib2==0.4.2
+google-auth-oauthlib==1.4.1
+edge-tts==7.2.8
+imageio-ffmpeg==0.6.0
+pillow==12.3.0
+numpy==2.5.3
+tzdata==2026.3
+# Web panel (app/web)
+fastapi==0.135.0
+uvicorn[standard]==0.41.0
+python-multipart==0.0.22
+sse-starlette==3.2.0
+# Tests
+pytest==9.1.1
+pytest-asyncio==1.4.0
+pytest-mock==3.15.1
