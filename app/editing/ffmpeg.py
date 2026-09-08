@@ -63,8 +63,11 @@ def run_ffmpeg(args: list[str], *, cwd: Path | str | None = None, timeout_s: flo
     ffmpeg, _ = resolve_ffmpeg()
     workdir = Path(cwd).resolve() if cwd else None
     try:
+        # ffmpeg prints UTF-8 on Windows; decoding with the console code page (cp1252) crashes the
+        # pipe reader thread on accented paths, so decode explicitly and never fail on stray bytes.
         completed = subprocess.run(
             [str(ffmpeg), "-hide_banner", "-nostdin", *map(str, args)], cwd=workdir, text=True,
+            encoding="utf-8", errors="replace",
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=timeout_s, check=False,
         )
     except subprocess.TimeoutExpired as exc:
@@ -81,6 +84,7 @@ def run_ffprobe(args: list[str], *, cwd: Path | str | None = None, timeout_s: fl
     try:
         completed = subprocess.run(
             [str(ffprobe), "-hide_banner", *map(str, args)], cwd=workdir, text=True,
+            encoding="utf-8", errors="replace",
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=timeout_s, check=False,
         )
     except subprocess.TimeoutExpired as exc:

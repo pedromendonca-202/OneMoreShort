@@ -35,6 +35,6 @@ def render_final(
     else:
         args += ["-vf", _subtitles_filter(ass, workdir), "-map", "0:v:0"]
     args += ["-map", "1:a:0", "-t", f"{max_duration_s:.3f}", "-c:v", "libx264", "-preset", "medium", "-crf", "18",
-             "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", str(output)]
+             "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-movflags", "+faststart", str(output)]
     run_ffmpeg(args, cwd=workdir)
     return output

@@ -39,7 +39,8 @@ def mix_audio(video_in: Path | str, narration: NarrationPlan, music: Path | None
     filters += [
         f"{bed}[narr]sidechaincompress=threshold=0.03:ratio=8:attack=20:release=250[ducked]",
         "[ducked][narr]amix=inputs=2:normalize=0[mixed]",
-        f"[mixed]loudnorm=I={_value(cfg, 'video', 'loudness_lufs', -14)}:TP={_value(cfg, 'video', 'true_peak_dbtp', -1)}[out]",
+        # loudnorm upsamples to 192 kHz internally; bring the bed back to broadcast 48 kHz.
+        f"[mixed]loudnorm=I={_value(cfg, 'video', 'loudness_lufs', -14)}:TP={_value(cfg, 'video', 'true_peak_dbtp', -1)},aresample=48000[out]",
     ]
-    run_ffmpeg(["-y", *inputs, "-filter_complex", ";".join(filters), "-map", "[out]", "-c:a", "pcm_s16le", str(output)], cwd=output.parent)
+    run_ffmpeg(["-y", *inputs, "-filter_complex", ";".join(filters), "-map", "[out]", "-ar", "48000", "-c:a", "pcm_s16le", str(output)], cwd=output.parent)
     return output
