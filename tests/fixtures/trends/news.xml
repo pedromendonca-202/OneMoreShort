@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"><channel><title>Google News</title>
+  <item>
+    <title>NASA's Mars discovery has scientists asking new questions - Science Daily</title>
+    <link>https://example.test/mars-news</link>
+    <description>A short science news summary.</description>
+    <pubDate>Sun, 07 Sep 2026 12:30:00 GMT</pubDate>
+    <category>Science</category>
+  </item>
+</channel></rss>

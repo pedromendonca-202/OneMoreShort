@@ -1,0 +1,14 @@
+{
+  "items": [
+    {
+      "id": "abc123",
+      "snippet": {
+        "title": "NASA's New Mars Discovery Explained",
+        "description": "A surprising result from Mars.",
+        "categoryId": "28",
+        "publishedAt": "2026-09-07T12:00:00Z"
+      },
+      "statistics": {"viewCount": "1200000", "likeCount": "56000", "commentCount": "2200"}
+    }
+  ]
+}
