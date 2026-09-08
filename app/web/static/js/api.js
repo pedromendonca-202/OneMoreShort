@@ -39,7 +39,8 @@ export const api = {
   post: (path, body = {}) => request("POST", path, body),
   put: (path, body = {}) => request("PUT", path, body),
   del: (path) => request("DELETE", path),
-  upload(path, formData, onProgress) {
+  async upload(path, formData, onProgress) {
+    if (!session) await loadSession();
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       xhr.open("POST", path);
