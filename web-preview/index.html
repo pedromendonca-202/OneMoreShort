@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OneMoreShort — Painel Web</title>
+  <meta name="description" content="Referências visuais, capturas do painel construído e a especificação do OneMoreShort.">
+  <style>
+    :root { --bg:#0D1014; --surface:#12171B; --border:#1E242C; --red:#FF2233; --text:#F7F6F7; --text-2:#99A1AC; --text-3:#6B7480; }
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--bg); color:var(--text); font: 15px/1.5 system-ui, "Segoe UI", sans-serif; }
+    main { max-width: 1200px; margin: 0 auto; padding: 40px 24px 80px; }
+    h1 { font-size: 40px; font-weight: 800; letter-spacing: -.03em; margin: 0 0 6px; }
+    h1 span { color: var(--red); }
+    .sub { color: var(--text-2); font-size: 16px; margin: 0 0 28px; }
+    .notice { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px 20px; color: var(--text-2); margin-bottom: 32px; }
+    .notice b { color: var(--text); }
+    .links { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 40px; }
+    .links a { display: inline-flex; align-items: center; height: 44px; padding: 0 18px; border-radius: 12px; background: var(--surface); border: 1px solid var(--border); color: var(--text); text-decoration: none; font-weight: 600; }
+    .links a.primary { background: linear-gradient(180deg, #FD3541, #C1101F); border-color: transparent; box-shadow: 0 6px 20px rgba(255,34,51,.28); }
+    h2 { font-size: 22px; font-weight: 700; letter-spacing: -.01em; margin: 40px 0 6px; }
+    .hint { color: var(--text-3); font-size: 13px; margin: 0 0 16px; }
+    .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 28px; }
+    .pair figure { margin: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+    .pair img { display: block; width: 100%; height: auto; }
+    .pair figcaption { padding: 10px 14px; font-size: 13px; color: var(--text-2); border-top: 1px solid var(--border); }
+    @media (max-width: 900px) { .pair { grid-template-columns: 1fr; } }
+    footer { margin-top: 48px; color: var(--text-3); font-size: 13px; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>OneMore<span>Short</span> — Painel Web</h1>
+  <p class="sub">Fábrica autônoma de YouTube Shorts. Esta página mostra as referências visuais e as capturas do painel construído.</p>
+  <div class="notice"><b>O painel roda localmente</b> (127.0.0.1:8787), porque precisa do ffmpeg, do banco SQLite e dos clipes gerados no Google Flow nesta máquina. Ele não é publicado aqui por decisão de segurança; o código completo está no repositório.</div>
+  <div class="links">
+    <a class="primary" href="painel-web.html">Especificação funcional (HTML)</a>
+    <a href="OneMoreShort-Painel-Web.pdf">Especificação (PDF)</a>
+    <a href="README.md">README</a>
+  </div>
+
+  <h2>Hoje</h2><p class="hint">Referência à esquerda, painel construído à direita.</p>
+  <div class="pair"><figure><img src="design/01-hoje.png" alt="Referência: Hoje"><figcaption>design/01-hoje.png</figcaption></figure><figure><img src="captures/01-hoje.png" alt="Captura: Hoje"><figcaption>docs/captures/01-hoje.png</figcaption></figure></div>
+  <h2>Estúdio</h2>
+  <div class="pair"><figure><img src="design/02-estudio.png" alt="Referência: Estúdio"><figcaption>design/02-estudio.png</figcaption></figure><figure><img src="captures/02-estudio.png" alt="Captura: Estúdio"><figcaption>docs/captures/02-estudio.png</figcaption></figure></div>
+  <h2>Conversa</h2>
+  <div class="pair"><figure><img src="design/03-conversa.png" alt="Referência: Conversa"><figcaption>design/03-conversa.png</figcaption></figure><figure><img src="captures/03-conversa.png" alt="Captura: Conversa"><figcaption>docs/captures/03-conversa.png</figcaption></figure></div>
+  <h2>Biblioteca</h2>
+  <div class="pair"><figure><img src="design/04-biblioteca.png" alt="Referência: Biblioteca"><figcaption>design/04-biblioteca.png</figcaption></figure><figure><img src="captures/04-biblioteca.png" alt="Captura: Biblioteca"><figcaption>docs/captures/04-biblioteca.png</figcaption></figure></div>
+  <h2>Desempenho</h2>
+  <div class="pair"><figure><img src="design/05-desempenho.png" alt="Referência: Desempenho"><figcaption>design/05-desempenho.png</figcaption></figure><figure><img src="captures/05-desempenho.png" alt="Captura: Desempenho"><figcaption>docs/captures/05-desempenho.png</figcaption></figure></div>
+  <h2>Inteligência</h2>
+  <div class="pair"><figure><img src="design/06-inteligencia.png" alt="Referência: Inteligência"><figcaption>design/06-inteligencia.png</figcaption></figure><figure><img src="captures/06-inteligencia.png" alt="Captura: Inteligência"><figcaption>docs/captures/06-inteligencia.png</figcaption></figure></div>
+  <h2>Ajustes</h2>
+  <div class="pair"><figure><img src="design/07-ajustes.png" alt="Referência: Ajustes"><figcaption>design/07-ajustes.png</figcaption></figure><figure><img src="captures/07-ajustes.png" alt="Captura: Ajustes"><figcaption>docs/captures/07-ajustes.png</figcaption></figure></div>
+
+  <footer>Capturas em 1491×1055 com dados de demonstração equivalentes às referências (scripts/seed_demo.py).</footer>
+</main>
+</body>
+</html>

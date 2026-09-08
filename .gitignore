@@ -54,3 +54,7 @@ desktop.ini
 storage_demo/
 .playwright-mcp/
 docs/captures/work/
+
+# --- vercel static preview build ---
+dist/
+.vercel/
